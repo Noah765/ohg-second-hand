@@ -1,0 +1,109 @@
+@tailwind base; /* Reset Rules, default styles */
+@tailwind components; /* Classes, that can be ovveridden by utilies */
+@tailwind utilities; /* Classes, that should always take precedence */
+
+@layer base {
+	html {
+		@apply scroll-smooth;
+	}
+
+	@font-face {
+		font-family: 'varela-round';
+		src: url('/fonts/varela-round.woff2');
+	}
+
+	body {
+		@apply bg-neutral-900 font-[varela-round] text-2xl;
+	}
+
+	section {
+		@apply mb-4 rounded-l-3xl bg-neutral-50 p-8;
+	}
+	section:first-of-type {
+		@apply rounded-tl-none;
+	}
+
+	aside {
+		@apply w-24 bg-neutral-50 p-4;
+	}
+
+	h1 {
+		@apply text-7xl;
+	}
+	h2 {
+		@apply text-6xl;
+	}
+	h3 {
+		@apply text-5xl;
+	}
+	h4 {
+		@apply text-4xl;
+	}
+	h5 {
+		@apply text-3xl;
+	}
+
+	iconify-icon {
+		@apply text-3xl;
+	}
+
+	input,
+	textarea {
+		@apply block w-full max-w-lg appearance-none rounded-2xl bg-transparent px-4 py-2 shadow-3
+		placeholder:text-black placeholder:opacity-50
+		focus:bg-neutral-100 focus:outline-none;
+	}
+	input::-webkit-inner-spin-button,
+	input::-webkit-outer-spin-button,
+	input::-webkit-search-cancel-button {
+		@apply appearance-none;
+	}
+
+	option {
+		@apply flex cursor-pointer border-y border-neutral-500 p-2 px-4 last:rounded-b-2xl last:border-b-0 hover:bg-neutral-100;
+	}
+
+	button {
+		@apply flex h-min;
+	}
+	button:not(.button-hidden),
+	.button {
+		@apply flex h-min w-full max-w-lg items-center whitespace-nowrap rounded-2xl border border-transparent px-4 py-2 shadow-3
+		hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none active:border-black active:shadow-2;
+	}
+	button:not(.button-hidden) :not(:last-child) {
+		@apply ml-2;
+	}
+	button:not(.button-hidden) :last-child,
+	.button :last-child {
+		@apply flex w-full justify-end;
+	}
+	@keyframes spinner {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	button[aria-busy='true']::before,
+	.button[aria-busy='true']::before {
+		content: '';
+		@apply mr-3 h-6 min-w-[1.5rem] rounded-full border-2 border-black border-t-transparent;
+		animation: spinner 0.7s linear infinite;
+	}
+	button:disabled,
+	.button:disabled {
+		@apply bg-neutral-500 hover:bg-neutral-500 active:border-transparent active:shadow-3;
+	}
+
+	a:focus {
+		@apply outline-none;
+	}
+}
+
+@layer components {
+	.button-red {
+		@apply bg-red-600 hover:!bg-red-700 focus:!bg-red-700;
+	}
+	.error {
+		@apply text-lg text-red-700;
+	}
+}
