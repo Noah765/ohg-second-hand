@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { page as pageStore } from '$app/stores';
+	import OfferListItem from '$lib/components/OfferListItem.svelte';
 	import Option from '$lib/components/Option.svelte';
 	import OptionMultiple from '$lib/components/OptionMultiple.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import Underlined from '$lib/components/Underlined.svelte';
-	import { formatCategory, formatPrice, formatPriceType, formatTime } from '$lib/format.js';
+	import { formatCategory } from '$lib/format.js';
 
 	export let data;
 
@@ -75,27 +76,7 @@
 	{/if}
 
 	{#each data.offers as offer}
-		<!-- TODO: Clean up CSS + Add semantics -->
-		<a
-			href={`/offers/${offer.id}`}
-			class="flex items-center rounded-3xl border-2 border-transparent p-4 shadow-3 hover:bg-neutral-100 active:border-black active:shadow-1 [&:not(:last-child)]:mb-6"
-		>
-			<span class="h-48 min-w-[16rem] rounded-3xl bg-gray-500" />
-			<span class="mx-6 h-44 min-w-[0.2rem] rounded-full bg-black" />
-			<div class="flex h-48 w-full flex-col overflow-hidden">
-				<div class="flex items-end whitespace-nowrap">
-					<span class="overflow-hidden overflow-ellipsis text-4xl">{offer.title}</span>
-					<span class="text-lg">&nbsp;von&nbsp;</span>
-					<a href={`/profile/${offer.creator.id}`} class="text-lg underline">{offer.creator.name}</a>
-				</div>
-				<span class="mb-auto overflow-hidden text-xl">{offer.description ?? ''}</span>
-				<span class="text-sm">{formatTime(offer.created_at)}</span>
-				<div class="flex max-w-full items-center justify-between">
-					<span> {formatPrice(offer.price)} ({formatPriceType(offer.price_type)}) </span>
-					<iconify-icon icon={formatCategory(offer.category).icon} />
-				</div>
-			</div>
-		</a>
+		<OfferListItem {offer} />
 	{:else}
 		<span class="opacity-50">Keine passenden Angebote gefunden</span>
 	{/each}

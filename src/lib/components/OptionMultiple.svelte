@@ -7,12 +7,13 @@
 
 	let parent: HTMLSpanElement;
 
-	const context = getContext<Writable<{ html: string; value: any }[]>>('selected');
+	const context = getContext<Writable<{ html: string; value: any }[] | null>>('selected');
 
 	onMount(() => {
-		if (selected && $context.length === 0) {
+		if (selected && !$context) {
 			setTimeout(() => {
 				context.update((old) => {
+					if (!old) old = [];
 					old.push({ html: parent.innerHTML, value });
 					old.sort();
 					return old;
@@ -21,7 +22,7 @@
 		}
 
 		const unsubscribe = context.subscribe((current) => {
-			if (current.find((e) => e.value === value)) selected = true;
+			if ((current ?? []).find((e) => e.value === value)) selected = true;
 			else selected = false;
 		});
 
@@ -29,10 +30,11 @@
 	});
 
 	function change() {
-		if ($context.find((e) => e.value === value)) {
-			context.update((old) => old.filter((e) => e.value !== value));
+		if (($context ?? []).find((e) => e.value === value)) {
+			context.update((old) => old!.filter((e) => e.value !== value));
 		} else {
 			context.update((old) => {
+				if (!old) old = [];
 				old.push({ html: parent.innerHTML, value });
 				old.sort();
 				return old;

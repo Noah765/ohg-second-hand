@@ -52,7 +52,7 @@
 	transition:scale
 	role="dialog"
 	aria-modal="true"
-	class="fixed right-1/2 top-1/2 z-30 flex h-[39rem] w-full max-w-lg -translate-y-1/2 translate-x-1/2 flex-col items-center rounded-3xl bg-neutral-50 p-8 text-center"
+	class="hide-scrollbar fixed right-1/2 top-1/2 z-30 flex h-[39rem] w-full max-w-lg -translate-y-1/2 translate-x-1/2 flex-col items-center overflow-y-scroll rounded-3xl bg-neutral-50 p-8 text-center"
 >
 	<slot />
 </article>

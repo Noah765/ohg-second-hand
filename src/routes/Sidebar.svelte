@@ -4,7 +4,9 @@
 	let expanded = false;
 	let locket = false;
 
-	const links = [
+	export let admin: boolean | undefined;
+
+	let links = [
 		{ icon: 'material-symbols:home-outline-rounded', size: 41, height: 27, to: '/', label: 'Link zur Startseite' },
 		{
 			icon: 'material-symbols:chat-outline-rounded',
@@ -24,6 +26,23 @@
 			label: 'Link zur Angebotserstellung'
 		}
 	];
+	$: if (!admin && links.find((link) => link.to === '/admin')) {
+		links.splice(
+			links.findIndex((link) => link.to === '/admin'),
+			1
+		);
+		links = links;
+	}
+	$: if (admin && !links.find((link) => link.to === '/admin')) {
+		links.push({
+			icon: 'material-symbols:tools-wrench-outline-rounded',
+			size: 34,
+			height: 34,
+			to: '/admin',
+			label: 'Link zur Admin Zentrale'
+		});
+		links = links;
+	}
 </script>
 
 <aside>
@@ -36,7 +55,8 @@
 		on:blur={() => {
 			if (!locket) expanded = false;
 		}}
-		class:h-[295px]={expanded}
+		class:h-[295px]={expanded && !admin}
+		class:h-[360px]={expanded && admin}
 		class="fixed grid h-16 gap-4 rounded-full bg-neutral-900 p-4 transition-all"
 	>
 		<button
@@ -65,13 +85,13 @@
 					out:scale={{ duration: 200 }}
 					href={link.to}
 					aria-label={link.label}
-					style:height={`${link.height}px`}
-					style:margin-top={`${link.marginTop}px`}
+					style:height="{link.height}px"
+					style:margin-top="{link.marginTop}px"
 					class="flex w-8 items-center justify-center"
 				>
 					<iconify-icon
 						icon={link.icon}
-						style:font-size={`${link.size}px`}
+						style:font-size="{link.size}px"
 						class="text-neutral-50 hover:text-neutral-500"
 					/>
 				</a>

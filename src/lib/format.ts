@@ -1,4 +1,6 @@
-export const formatCategory = (inp: number) => {
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+
+export function formatCategory(inp: number) {
 	if (inp === 0) return { name: 'Videospiele', icon: 'ph:game-controller' };
 	if (inp === 1) return { name: 'Gesellschaftsspiele', icon: 'bxs:chess' };
 	if (inp === 2) return { name: 'Bücher', icon: 'ph:books' };
@@ -8,39 +10,40 @@ export const formatCategory = (inp: number) => {
 	if (inp === 6) return { name: 'Schulsachen', icon: 'map:school' };
 	if (inp === 7) return { name: 'Elektronik', icon: 'ic:twotone-smartphone' };
 	return { name: 'Sonstiges', icon: 'mdi:dots-horizontal-circle-outline' };
-};
+}
 
-export const formatPrice = (inp: number | null) => {
+export function formatPrice(inp: number | null) {
 	if (!inp) return '00,00 €';
 
-	return `${inp.toString().replace('.', ',')} €`;
-};
+	return `${(inp / 100).toString().replace('.', ',')} €`;
+}
 
-export const formatPriceType = (inp: boolean | null) => {
+export function formatPriceFixed(inp: boolean | null) {
 	if (inp === null) return 'Kostenlos';
-	if (inp) return 'Verhandlung';
-	return 'Festpreis';
-};
+	if (inp) return 'Festpreis';
+	return 'Verhandlung';
+}
 
-export const formatReport = (inp: number) => {
+export function formatReport(inp: number) {
 	if (inp === 0) return 'Spam';
 	if (inp === 1) return 'Beleidigung';
 	if (inp === 2) return 'Diskriminierung';
 	return 'Verletzung der Privatsphäre';
-};
+}
 
 const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-export const formatTime = (inp: Date) => {
-	const minute = inp.getMinutes();
-	const hour = inp.getHours();
-	const day = days[inp.getDay()];
-	const date = inp.getDate();
-	const month = months[inp.getMonth()];
-	const year = inp.getFullYear();
+export function formatTime(inp: string) {
+	const time = new Date(inp);
+	const minute = time.getMinutes();
+	const hour = time.getHours();
+	const day = days[time.getDay()];
+	const date = time.getDate();
+	const month = months[time.getMonth()];
+	const year = time.getFullYear();
 	const diffDays = new Date().getDate() - date;
-	const diffMonths = new Date().getMonth() - inp.getMonth();
-	const diffYears = new Date().getFullYear() - inp.getFullYear();
+	const diffMonths = new Date().getMonth() - time.getMonth();
+	const diffYears = new Date().getFullYear() - time.getFullYear();
 
 	if (diffYears === 0 && diffMonths === 0 && diffDays === 0) {
 		return `Heute, ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
@@ -53,9 +56,26 @@ export const formatTime = (inp: Date) => {
 	} else {
 		return `${date}. ${month}. ${year}`;
 	}
-};
+}
 
-export const formatReportTimeType = (inp1: number, inp2: number) => {
+export function formatReportTime(inp: number) {
+	const time = new Date(inp);
+	const minute = time.getMinutes();
+	const hour = time.getHours();
+	const day = days[time.getDay()];
+	const date = time.getDate();
+	const month = months[time.getMonth()];
+	const year = time.getFullYear();
+	const diffYears = new Date().getFullYear() - time.getFullYear();
+
+	if (diffYears === 0) {
+		return `${day}. ${date}. ${month}., ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+	} else {
+		return `${date}. ${month}. ${year}`;
+	}
+}
+
+export function formatReportTimeType(inp1: number, inp2: number) {
 	if (inp1 === 0 && inp2 === 1) return 'Stunde';
 	if (inp1 === 0) return 'Stunden';
 	if (inp1 === 1 && inp2 === 1) return 'Tag';
@@ -65,8 +85,8 @@ export const formatReportTimeType = (inp1: number, inp2: number) => {
 	if (inp1 === 3 && inp2 === 1) return 'Monat';
 	if (inp1 === 3) return 'Monate';
 	return 'Dauerhaft';
-};
+}
 
-//   export const formatImage = (inp: string) => {
-//     return `${useRuntimeConfig().public.supabase.url}/storage/v1/object/public/offer-images/${inp}`;
-//   };
+export function formatImage(inp: string, bucketId: string) {
+	return `${PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketId}/${inp}`;
+}

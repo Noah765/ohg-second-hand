@@ -1,27 +1,71 @@
 <script lang="ts">
-	import { setContext } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { writable } from 'svelte/store';
 	import type { TransitionConfig } from 'svelte/transition';
 
 	export let placeholder = '';
-	export let name: string;
+	export let name = '';
 	export let multiple = false;
+	export let multipleValueRegex: RegExp | null = null;
 	export let required = false;
 
-	let value: any;
+	export let value: any = null;
 
-	$: if (multiple) value = (selected as { html: string; value: any }[]).map((e) => e.value).join('-');
-	else value = (selected as { html: string; value: any } | null)?.value ?? null;
+	$: if (multiple)
+		value =
+			(selected as { value: any }[] | null)
+				?.map((e) => e.value)
+				.sort()
+				.join('-') ?? null;
+	else value = (selected as { value: any } | null)?.value ?? null;
 
 	let expanded = false;
 
 	const selectedContext = setContext(
 		'selected',
-		multiple ? writable<{ html: string; value: any }[]>([]) : writable<{ html: string; value: any } | null>(null)
+		multiple
+			? writable<{ html: string; value: any }[] | null>(null)
+			: writable<{ html: string; value: any } | null>(null)
 	);
-	export let selected: { html: string; value: any }[] | { html: string; value: any } | null = multiple ? [] : null;
-	$: selected = $selectedContext;
+	let selected:
+		| {
+				html: string;
+				value: any;
+		  }[]
+		| {
+				html: string;
+				value: any;
+		  }
+		| null = null;
+	onMount(() => {
+		return selectedContext.subscribe((newSelected) => {
+			if (!Array.isArray(newSelected) || multipleValueRegex === null) {
+				selected = newSelected;
+				return;
+			}
+
+			const value = newSelected
+				.map((e) => e.value)
+				.sort()
+				.join('-');
+			const replaced = value.replaceAll(multipleValueRegex, '');
+
+			if (replaced === value) {
+				selected = newSelected;
+				return;
+			}
+
+			const result: { html: string; value: any }[] = [];
+			newSelected.forEach((e) => {
+				if (replaced.includes(e.value)) {
+					result.push(e);
+				}
+			});
+
+			selected = result;
+		});
+	});
 
 	function scale(node: Element, { delay = 0, duration = 400, easing = cubicOut } = {}): TransitionConfig {
 		const height = node.clientHeight + 3;
@@ -48,7 +92,7 @@
 		class:transition-[border-radius]={!expanded}
 		class:duration-150={!expanded}
 		class:delay-[260ms]={!expanded}
-		class="h-[50px] active:!border-transparent active:!shadow-3"
+		class="!h-[50px] active:!border-transparent active:!shadow-3"
 	>
 		<span class="!ml-0 flex w-full items-center overflow-hidden [&>*]:ml-2 [&>*]:!w-min">
 			{#if selected && (!Array.isArray(selected) || selected.length > 0)}
@@ -66,7 +110,7 @@
 			class="!w-min"
 		/>
 	</button>
-	<div class="absolute top-[53px] w-full max-w-lg overflow-y-clip pb-1">
+	<div class="absolute top-[53px] z-10 w-full max-w-lg overflow-y-clip pb-1">
 		{#key expanded}
 			<ul id="options" transition:scale|local class:hidden={!expanded} class="rounded-b-2xl shadow-3">
 				<slot />

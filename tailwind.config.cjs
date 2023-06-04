@@ -51,7 +51,7 @@ module.exports = {
 					line: (value) => ({
 						display: 'block',
 						width: '100%',
-						height: '0.25rem',
+						minHeight: '0.25rem',
 						backgroundColor: value,
 						borderRadius: '9999px'
 					}),

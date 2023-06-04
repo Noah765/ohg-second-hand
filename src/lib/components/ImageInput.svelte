@@ -1,72 +1,20 @@
 <script lang="ts">
-	let images: Blob[] = [];
-	let currentImage = 1;
+	import appendImages from '$lib/appendImages';
+	import { formatImage } from '$lib/format';
+	import type { WritableAlerts } from '../../routes/Alerts.svelte';
+	import { getContext } from 'svelte';
+
+	export let images: (Blob | string)[] = [];
+	let currentImage = 0;
+
+	const alerts: WritableAlerts = getContext('alerts');
 
 	async function onAppendImages(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
-		const inputElement = event.currentTarget;
-
-		const files = Array.from(inputElement.files!);
-		if (files.length === 0) return;
-		inputElement.value = '';
-
-		// TODO: Max Image Client side limit
-		// if (images.length === 10) {
-		// 	useEmitter().emit('imageUploadLimit', 10);
-		// 	return;
-		// }
-		// if (images.length + files.length > 10) {
-		// 	useEmitter().emit('imageUploadLimit', 10);
-		// 	files.splice(10 - images.value.length);
-		// }
-
-		const processedImages: Blob[] = [];
-
-		const reader = new FileReader();
-		for (let i = files.length - 1; i >= 0; i--) {
-			// Iterate backwards to enable splicing while iterating
-			if (!files[i].type.startsWith('image/')) files.splice(i, 1);
-
-			reader.readAsArrayBuffer(files[i]);
-
-			await new Promise<void>((resolve) => {
-				reader.onload = (event) => {
-					const image = new Image();
-					image.src = window.URL.createObjectURL(new Blob([event.target!.result!]));
-
-					image.onload = () => {
-						const canvas = document.createElement('canvas');
-
-						let width = image.width;
-						let height = image.height;
-
-						if (width > 600) {
-							height = Math.round(height * (600 / width));
-							width = 600;
-						}
-						if (height > 450) {
-							width = Math.round(width * (450 / height));
-							height = 450;
-						}
-
-						canvas.width = width;
-						canvas.height = height;
-						canvas.getContext('2d')!.drawImage(image, 0, 0, width, height);
-
-						canvas.toBlob(
-							(blob) => {
-								processedImages.unshift(blob!);
-								resolve();
-							},
-							'image/jpeg',
-							0.5
-						);
-					};
-				};
-			});
-		}
+		const result = await appendImages(event, images, alerts, 10);
+		if (!result) return;
 
 		currentImage = images.length;
-		images = images.concat(processedImages);
+		images = result;
 	}
 
 	let swipeStartX: number;
@@ -114,40 +62,44 @@
 		<div
 			role="region"
 			aria-label="Hinzugefügte Bilder"
-			style:right={`${24.5 * currentImage}rem`}
+			style:right="{24.5 * currentImage}rem"
 			class="relative flex h-full transition-[right] duration-500"
 		>
-			{#each images as image, index}
+			{#each images as image, index (image)}
 				<span class="mr-2 flex min-w-full items-center justify-center">
 					<img
-						src={URL.createObjectURL(image)}
-						alt={`Hinzugefügtes Bild ${index + 1}`}
+						src={typeof image === 'string' ? formatImage(image, 'offer_images') : URL.createObjectURL(image)}
+						alt="Hinzugefügtes Bild {index + 1}"
 						class="max-h-full rounded-3xl"
 					/>
 				</span>
 			{/each}
 		</div>
 		<button
+			type="button"
 			aria-label="Bild Löschen"
 			on:click={() => {
-				if (currentImage >= 1) currentImage--;
 				images.splice(currentImage, 1);
+				if (currentImage >= 1) currentImage--;
 				images = images;
 			}}
 			class="button-hidden absolute left-8 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full border border-neutral-600 border-opacity-0 bg-neutral-600 bg-opacity-50 p-2 hover:bg-opacity-75 active:border-0"
 		>
 			<iconify-icon icon="material-symbols:delete-outline-rounded" />
 		</button>
-		<label
-			aria-label="Mehr Bilder hinzufügen"
-			class="absolute right-8 top-8 flex -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-neutral-600 border-opacity-0 bg-neutral-600 bg-opacity-50 p-2 hover:bg-opacity-75 active:border-0"
-		>
-			<input type="file" accept="image/*" multiple hidden on:change={onAppendImages} />
-			<iconify-icon icon="material-symbols:add-rounded" />
-		</label>
+		{#if images.length < 10}
+			<label
+				aria-label="Mehr Bilder hinzufügen"
+				class="absolute right-8 top-8 flex -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-neutral-600 border-opacity-0 bg-neutral-600 bg-opacity-50 p-2 hover:bg-opacity-75 active:border-0"
+			>
+				<input type="file" accept="image/*" multiple hidden on:change={onAppendImages} />
+				<iconify-icon icon="material-symbols:add-rounded" />
+			</label>
+		{/if}
 
 		{#if currentImage !== 0}
 			<button
+				type="button"
 				aria-label="Vorheriges Bild"
 				on:click={() => currentImage--}
 				class="button-hidden absolute left-2 top-1/2 -translate-y-1/2 rounded-2xl border border-neutral-600 border-opacity-0 bg-neutral-600 bg-opacity-50 py-2 hover:bg-opacity-75 active:border-0"
@@ -157,6 +109,7 @@
 		{/if}
 		{#if currentImage !== images.length - 1}
 			<button
+				type="button"
 				aria-label="Nächstes Bild"
 				on:click={() => currentImage++}
 				class="button-hidden absolute right-2 top-1/2 -translate-y-1/2 rounded-2xl border border-neutral-600 border-opacity-0 bg-neutral-600 bg-opacity-50 py-2 hover:bg-opacity-75 active:border-0"
@@ -169,7 +122,8 @@
 			<div class="absolute bottom-6 left-1/2 flex -translate-x-1/2">
 				{#each images as _, index}
 					<button
-						aria-label={`Zu Bild ${index + 1}`}
+						type="button"
+						aria-label="Zu Bild {index + 1}"
 						on:click={() => (currentImage = index)}
 						class:cursor-auto={index === currentImage}
 						class:w-8={index === currentImage}

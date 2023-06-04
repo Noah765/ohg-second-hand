@@ -1,11 +1,37 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import type { SubmitFunction } from './$types.js';
-	import ForgotNameModal from './ForgotNameModal.svelte';
-	import PasswordResetModal from './PasswordResetModal.svelte';
+	import { formatImage } from '$lib/format';
+	import type { WritableAlerts } from './Alerts.svelte';
+	import ResetPasswordModal from './ResetPasswordModal.svelte';
+	import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+	import { getContext, onMount } from 'svelte';
 
 	export let data;
+	$: ({ supabase, user, offerImages } = data);
+
+	const alerts: WritableAlerts = getContext('alerts');
+
+	if ($page.url.hash.includes('error')) {
+		const alertId = Symbol();
+		alerts.update((oldAlerts) => [
+			...oldAlerts,
+			{
+				id: alertId,
+				color: 'red',
+				icon: 'material-symbols:error-circle-rounded-outline',
+				title: 'Fehler',
+				description: 'Das Verifizierungs-Token ist ungültig oder abgelaufen. ',
+				action: {
+					text: 'E-Mail erneut senden',
+					function: () => {
+						goto('?verification');
+						alerts.update((oldAlerts) => oldAlerts.filter((alert) => alert.id !== alertId));
+					}
+				}
+			}
+		]);
+	}
 
 	const categories = [
 		{ id: 7, image: 'electronic', icon: 'ic:twotone-smartphone', name: 'Elektronik' },
@@ -31,56 +57,112 @@
 		return categories.slice((9 / maxColumns) * column, (9 / maxColumns) * (column + 1));
 	}
 
-	export let form;
+	let offerImagesRef: HTMLImageElement[] = [];
+	let offerImagesWidth = 0;
 
-	let name: string;
+	onMount(() => {
+		if ($page.url.searchParams.has('login')) setTimeout(() => gotoLogin(), 400);
+
+		const { data } = supabase.auth.onAuthStateChange((event) => {
+			if (event === 'PASSWORD_RECOVERY') resetPasswordModal = 'password';
+		});
+
+		const promises = offerImagesRef.map(
+			(image) => new Promise<number>((resolve) => (image.onload = () => resolve(image.width)))
+		);
+		Promise.all(promises).then(
+			(widths) => (offerImagesWidth = widths.reduce((previous, current) => previous + current + 16, 0))
+		);
+		setTimeout(() => {
+			if (offerImagesWidth === 0 && offerImagesRef.length > 0 && offerImagesRef[0] !== null)
+				offerImagesWidth = offerImagesRef.reduce(
+					(previous, currentRef) => previous + currentRef.getBoundingClientRect().width + 16,
+					0
+				);
+		}, 3000);
+
+		return () => data.subscription.unsubscribe();
+	});
+
+	let resetPasswordModal: null | 'email' | 'password' = null;
+
+	let email = '';
+	let password = '';
 	let passwordVisible = false;
-	let passwordRequired = true;
 
-	let forgotNameModal = false;
-	let passwordResetModal = $page.url.searchParams.has('passwordResetToken');
+	function gotoLogin() {
+		window.scrollTo(0, 2000);
+
+		const urlEmail = $page.url.searchParams.get('login');
+		if (urlEmail) email = urlEmail;
+	}
+
+	const updateBlock: () => void = getContext('updateBlock');
 
 	let loginLoading = false;
-	const submitLogin: SubmitFunction = ({ action, cancel }) => {
-		if (action.pathname === '/forgotPassword') {
-			passwordResetModal = true;
-			return cancel();
+	let loginError = '';
+	async function login() {
+		loginLoading = true;
+		loginError = '';
+
+		const { data: userBlocked, error: checkUserBlockedError } = (await supabase.rpc('get_user_blocked', {
+			email,
+			password
+		})) as PostgrestSingleResponse<{ username: string; until: number; description: string }>;
+
+		if (checkUserBlockedError) {
+			loginLoading = false;
+			loginError = checkUserBlockedError.message;
+			return;
+		}
+		if (userBlocked.username) {
+			loginLoading = false;
+			localStorage.setItem(
+				'block',
+				JSON.stringify({
+					username: userBlocked.username,
+					description: userBlocked.description,
+					until: userBlocked.until
+				})
+			);
+			updateBlock();
+			return;
 		}
 
-		loginLoading = true;
-		return async ({ update, result }) => {
-			await update();
-			loginLoading = false;
-			if (result.type === 'failure') name = String((result.data as any)?.data?.name ?? '');
-		};
-	};
+		localStorage.removeItem('block');
+
+		const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+		loginLoading = false;
+		if (error) loginError = error.message;
+		else goto('/');
+	}
 
 	let logoutLoading = false;
-	const submitLogout: SubmitFunction = () => {
+	let logoutError = '';
+	async function logout() {
 		logoutLoading = true;
-		return async ({ update }) => {
-			await update();
-			logoutLoading = false;
-		};
-	};
-</script>
+		logoutError = '';
 
-<svelte:head>
-	<title>Startseite - OHG Second Hand</title>
-	<meta name="description" content="Startseite der OHG Second Hand Webseite" />
-</svelte:head>
+		const { error } = await supabase.auth.signOut();
+
+		logoutLoading = false;
+		if (error) logoutError = error.message;
+	}
+</script>
 
 <svelte:window bind:innerWidth={pageWidth} />
 
 <section>
-	<h1 class="mb-12">
+	<h1 class="mb-8">
 		Second Hand<br />
 		<span class="text-8xl leading-tight text-green-700">leicht</span><br />
 		gemacht
 	</h1>
 
-	{#if data.user}
-		<form method="POST" action="?/logout" use:enhance={submitLogout}>
+	{#if user}
+		<form on:submit|preventDefault={logout}>
+			<p class="error">{logoutError}</p>
 			<button aria-busy={logoutLoading} disabled={logoutLoading}>
 				Abmelden<iconify-icon icon="material-symbols:arrow-forward-rounded" />
 			</button>
@@ -90,9 +172,9 @@
 			Account erstellen <iconify-icon icon="material-symbols:arrow-forward-rounded" />
 		</a>
 		<span class="lines-green-800 my-2 max-w-lg text-sm">Oder</span>
-		<a href="#login" class="button">
+		<button on:click={gotoLogin}>
 			Anmelden <iconify-icon icon="material-symbols:arrow-downward-rounded" />
-		</a>
+		</button>
 	{/if}
 </section>
 
@@ -104,11 +186,11 @@
 				{#each Array(2) as _, section}
 					{#each computeRelevantCategories(column, categoryColumns) as { id, image, icon, name }}
 						<a
-							href={`/shop?category=${id}`}
+							href="/shop?category={id}"
 							tabindex={section === 0 ? 0 : -1}
 							class="relative my-4 block rounded-3xl border-black shadow-4 transition-transform last:mb-0 hover:scale-[1.02] hover:bg-neutral-500 focus:scale-[1.02] focus:bg-neutral-500 active:border active:shadow-3"
 						>
-							<img src={`/images/${image}.webp`} alt={name} class="w-full rounded-3xl opacity-50" />
+							<img src="/images/{image}.webp" alt={name} class="w-full rounded-3xl opacity-50" />
 							<span class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
 								<iconify-icon {icon} />
 								{name}
@@ -127,57 +209,42 @@
 		<span class="line-green-800 mb-4" />
 	</div>
 	Mit Second Hand Angeboten sparst du nicht nur viel Geld, sondern tust dabei auch noch etwas gutes für die Umwelt!
-	<div class="fade-horizontal relative mt-4 flex h-[60vh] overflow-hidden">
-		<div class="move-horizontal relative mx-2 h-fit w-full">
+	<div class="fade-horizontal relative mt-4 h-[21vw] overflow-x-hidden">
+		<div style:--move="-{offerImagesWidth}px" class="move-horizontal flex h-full items-center">
 			{#each Array(2) as _, section}
-				{#each Array(10) as _}
-					<!-- <a
-						href={`/shop?category=${id}`}
+				{#each offerImages as { offer, image }, index}
+					<a
+						href="offers/{offer}"
 						tabindex={section === 0 ? 0 : -1}
-						class="relative my-4 block rounded-3xl border-black shadow-4 transition-transform last:mb-0 hover:scale-[1.02] hover:bg-neutral-500 focus:scale-[1.02] focus:bg-neutral-500 active:border active:shadow-3"
+						class="mx-2 h-[20vw] min-w-fit transition-transform last:mr-0 hover:scale-[1.02]"
 					>
-						<img src={`/images/${image}.webp`} alt={name} class="w-full rounded-3xl opacity-50" />
-						<span class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-							<iconify-icon {icon} />
-							{name}
-						</span>
-					</a> -->
+						<img
+							bind:this={offerImagesRef[index]}
+							src={formatImage(image, 'offer_images')}
+							alt="Bild eines Angebots {index + 1}"
+							class="h-full rounded-3xl"
+						/>
+					</a>
 				{/each}
 			{/each}
 		</div>
 	</div>
-	<!-- <div class="overflow-hidden mt-4 h-[21vw] fade relative" on:mouseenter="pause" on:mouseleave="run">
-      <div class="absolute flex items-center move">
-        <img
-          v-for="image in data"
-          :src="useFormatImage(image.image)"
-          class="m-2 h-[20vw] rounded-3xl hover:scale-[1.02] transition-transform cursor-pointer"
-          ref="imagesRef"
-          @click="useNavigateTo(`/offers/${image.id}`)"
-        />
-        <img
-          v-for="image in data"
-          :src="useFormatImage(image.image)"
-          class="m-2 h-[20vw] rounded-3xl hover:scale-[1.02] transition-transform cursor-pointer"
-          @click="useNavigateTo(`/offers/${image.id}`)"
-        />
-      </div>
-    </div> -->
 </section>
 
-{#if passwordResetModal}<PasswordResetModal {name} {form} on:close={() => (passwordResetModal = false)} />{/if}
-{#if forgotNameModal}<ForgotNameModal {form} on:close={() => (forgotNameModal = false)} />{/if}
+{#if resetPasswordModal}
+	<ResetPasswordModal type={resetPasswordModal} {supabase} {email} on:close={() => (resetPasswordModal = null)} />
+{/if}
 
-{#if !data.user}
-	<section id="login">
+{#if !user}
+	<section>
 		<h2>Willkommen zurück!</h2>
-		<form method="POST" action="?/login" use:enhance={submitLogin} class="mt-6 grid gap-3">
-			<input name="name" required minlength="3" autocomplete="username" bind:value={name} placeholder="Nutzername" />
+		<form method="POST" on:submit|preventDefault={login} class="mt-6 grid gap-3">
+			<input bind:value={email} type="email" required placeholder="E-Mail-Adresse" />
 			<div class="flex items-center">
 				<input
-					name="password"
+					on:input={(e) => (password = e.currentTarget.value)}
 					type={passwordVisible ? 'text' : 'password'}
-					required={passwordRequired}
+					required
 					minlength="6"
 					autocomplete="current-password"
 					placeholder="Passwort"
@@ -186,7 +253,7 @@
 					type="button"
 					on:click={() => (passwordVisible = !passwordVisible)}
 					aria-label={passwordVisible ? 'Passwort verstecken' : 'Passwort anzeigen'}
-					class="button-hidden relative right-12 h-[30px]"
+					class="button-hidden relative right-12 h-[30px] w-0"
 				>
 					<iconify-icon
 						icon={passwordVisible
@@ -195,20 +262,12 @@
 					/>
 				</button>
 			</div>
-			<p class="error -mb-2">{form?.loginError ?? ''}</p>
-			<button aria-busy={loginLoading} disabled={loginLoading} on:click={() => (passwordRequired = true)}>
+			<p class="error -mb-2">{loginError}</p>
+			<button aria-busy={loginLoading} disabled={loginLoading}>
 				Anmelden<iconify-icon icon="material-symbols:arrow-forward-rounded" />
 			</button>
-			<div class="mt-2 flex">
-				<button type="button" on:click={() => (forgotNameModal = true)} class="!w-min text-xl">
-					Nutzername vergessen?
-				</button>
-				<span class="line-vertical-black mx-4" />
-				<button formaction="forgotPassword" on:click={() => (passwordRequired = false)} class="!w-min text-xl">
-					Passwort vergessen?
-				</button>
-			</div>
 		</form>
+		<button on:click={() => (resetPasswordModal = 'email')} class="mt-6 text-xl">Passwort vergessen?</button>
 	</section>
 {/if}
 
@@ -239,6 +298,18 @@
 		animation: move calc((9 / var(--columns)) * 10s) linear infinite;
 	}
 	.move:hover {
+		animation-play-state: paused;
+	}
+
+	@keyframes move-horizontal {
+		to {
+			transform: translateX(var(--move));
+		}
+	}
+	.move-horizontal {
+		animation: move-horizontal 30s linear infinite;
+	}
+	.move-horizontal:hover {
 		animation-play-state: paused;
 	}
 </style>

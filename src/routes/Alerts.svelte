@@ -1,15 +1,15 @@
 <script context="module" lang="ts">
 	import type { Writable } from 'svelte/store';
 
-	export type AlertsType = {
+	export type Alert = {
 		id: symbol;
 		color?: 'red' | 'green';
 		icon: string;
 		title: string;
 		description?: string;
 		action?: { text: string; function: () => void };
-	}[];
-	export type WritableAlerts = Writable<AlertsType>;
+	};
+	export type WritableAlerts = Writable<Alert[]>;
 </script>
 
 <script lang="ts">
@@ -42,7 +42,9 @@
 				<h5>{title}</h5>
 				<p class="text-base">
 					{description ?? ''}
-					<button on:click={action?.function} class="button-hidden inline underline">{action?.text}</button>
+					{#if action}
+						<button on:click={action?.function} class="button-hidden inline underline">{action?.text}</button>
+					{/if}
 				</p>
 			</div>
 			<button

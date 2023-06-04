@@ -52,8 +52,8 @@
 <span class="relative block">
 	{#each lines as lineWidth, index}
 		<span
-			style:top={`${(text.offsetHeight / lines.length) * (index + 1) - 7}px`}
-			style:width={`${lineWidth}px`}
+			style:top="{(text.offsetHeight / lines.length) * (index + 1) - 7}px"
+			style:width="{lineWidth}px"
 			class="absolute h-1 rounded-full bg-green-800"
 		/>
 	{/each}

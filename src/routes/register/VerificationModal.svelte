@@ -1,96 +1,96 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Modal from '$lib/components/Modal.svelte';
-	import type { ActionData, SubmitFunction } from './$types';
+	import type { PageData } from './$types';
 	import { onDestroy } from 'svelte';
 
-	let initialEmail = $page.url.searchParams.get('verification');
+	let email = $page.url.searchParams.get('verification');
 
-	export let form: ActionData;
+	export let supabase: PageData['supabase'];
 
-	let resendVerificationEmailLoading = false;
-	let resendVerificationEmailTime = 60;
-	let resendVerificationEmailTimer = setInterval(() => {
-		resendVerificationEmailTime--;
-		if (resendVerificationEmailTime === 0) clearInterval(resendVerificationEmailTimer);
-	}, 1000);
-	let resentVerificationEmail = false;
+	let error = '';
 
-	let cancelRegistrationLoading = false;
+	let loading = false;
+	let time = 0;
+	let timer: NodeJS.Timer;
+	if (email) {
+		time = 30;
+		timer = setInterval(() => {
+			time--;
+			if (time === 0) clearInterval(timer);
+		}, 1000);
+	}
+	let successful = false;
 
-	onDestroy(() => clearInterval(resendVerificationEmailTimer));
+	onDestroy(() => clearInterval(timer));
 
-	const verification: SubmitFunction = ({ action }) => {
-		const resendVerificationEmail = action.searchParams.get('/resendVerificationEmail') !== null;
+	function submit(
+		event: Event & { readonly submitter: HTMLElement | null } & { currentTarget: EventTarget & HTMLFormElement }
+	) {
+		const email = (event.currentTarget[0] as HTMLInputElement).value;
 
-		if (resendVerificationEmail) {
-			resendVerificationEmailLoading = true;
-			resendVerificationEmailTime = 60;
-			resendVerificationEmailTimer = setInterval(() => {
-				resendVerificationEmailTime--;
-				if (resendVerificationEmailTime === 0) clearInterval(resendVerificationEmailTimer);
-			}, 1000);
-		} else cancelRegistrationLoading = true;
+		if (event.submitter === event.currentTarget[1]) {
+			resend(email);
+		} else {
+			cancel(email);
+		}
+	}
 
-		return async ({ update, result }) => {
-			await update();
+	async function resend(email: string) {
+		loading = true;
+		error = '';
+		time = 30;
+		timer = setInterval(() => {
+			time--;
+			if (time === 0) clearInterval(timer);
+		}, 1000);
 
-			if (!resendVerificationEmail) return;
+		const { error: supabaseError } = await supabase.auth.resend({ type: 'signup', email });
 
-			resendVerificationEmailLoading = false;
-			if (result.type === 'success') resentVerificationEmail = true;
-			else {
-				clearInterval(resendVerificationEmailTimer);
-				resendVerificationEmailTime = 0;
-			}
-		};
-	};
+		loading = false;
+
+		if (supabaseError) error = supabaseError.message;
+		else successful = true;
+	}
+
+	let cancelLoading = false;
+	async function cancel(email: string) {
+		cancelLoading = true;
+
+		await supabase.rpc('delete_unverified_user', { email });
+
+		goto('/');
+	}
 </script>
 
 <Modal>
 	<h5>E-Mail-Adresse verifizieren</h5>
 	<iconify-icon
-		icon={initialEmail ? 'material-symbols:mark-email-unread-outline-rounded' : 'material-symbols:mail-outline-rounded'}
+		icon={email ? 'material-symbols:mark-email-unread-outline-rounded' : 'material-symbols:mail-outline-rounded'}
 		class="my-2 text-9xl text-green-700"
 	/>
 	<span class="line-green-700 mb-4" />
 	<p>
-		{#if initialEmail}
-			Eine Verifizierungs-E-Mail wurde {#if resentVerificationEmail}erneut{/if} an
-			<span class="whitespace-nowrap">"{initialEmail}"</span> gesendet
+		{#if email}
+			Eine Verifizierungs-E-Mail wurde {#if successful}erneut{/if} an
+			<span class="whitespace-nowrap">"{email}"</span> gesendet
 		{:else}
 			Gib deine E-Mail-Adresse an, um eine neue Verifizierungs-E-Mail zu senden
 		{/if}
 	</p>
-	<form method="POST" use:enhance={verification} class="mt-auto w-full">
-		<span class="error mb-2 block">{form?.modalError ?? ''}</span>
-		<input
-			name="email"
-			type={initialEmail ? 'hidden' : 'email'}
-			required
-			value={form?.modalData?.email ?? initialEmail}
-			placeholder="E-Mail-Adresse"
-		/>
-		<button
-			formaction="?/resendVerificationEmail"
-			aria-busy={resendVerificationEmailLoading}
-			disabled={resendVerificationEmailLoading || resendVerificationEmailTime !== 0}
-			class="mb-4 mt-2"
-		>
-			{#if resendVerificationEmailTime}
-				Warte {resendVerificationEmailTime} Sekunden
+	<form on:submit|preventDefault={submit} class="mt-auto w-full">
+		<span class="error mb-2 block">{error}</span>
+		<input type={email ? 'hidden' : 'email'} value={email} required placeholder="E-Mail-Adresse" />
+		<button aria-busy={loading} disabled={loading || time !== 0} class="mb-4 mt-2">
+			{#if time}
+				Warte {time} Sekunden
 				<iconify-icon icon="material-symbols:nest-clock-farsight-analog-outline-rounded" />
 			{:else}
 				E-Mail erneut senden<iconify-icon icon="material-symbols:send-outline-rounded" />
 			{/if}
 		</button>
-		<button
-			formaction="?/cancelRegistration"
-			aria-busy={cancelRegistrationLoading}
-			disabled={cancelRegistrationLoading}
-			class="button-red"
-		>
+		<button aria-busy={cancelLoading} disabled={cancelLoading} class="button-red">
 			Registrierung abbrechen<iconify-icon icon="material-symbols:close-rounded" />
 		</button>
 	</form>
