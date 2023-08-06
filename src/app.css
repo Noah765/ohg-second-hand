@@ -58,6 +58,12 @@
 	input::-webkit-search-cancel-button {
 		@apply appearance-none;
 	}
+	:-moz-ui-invalid {
+		@apply shadow-3;
+	}
+	input[type='number'] {
+		-moz-appearance: textfield;
+	}
 
 	option {
 		@apply flex cursor-pointer border-y border-neutral-500 p-2 px-4 last:rounded-b-2xl last:border-b-0 hover:bg-neutral-100;

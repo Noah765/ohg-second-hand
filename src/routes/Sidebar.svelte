@@ -7,23 +7,23 @@
 	export let admin: boolean | undefined;
 
 	let links = [
-		{ icon: 'material-symbols:home-outline-rounded', size: 41, height: 27, to: '/', label: 'Link zur Startseite' },
+		{ icon: 'material-symbols:home-outline-rounded', size: 41, height: 27, to: '/', label: 'Startseite' },
 		{
 			icon: 'material-symbols:chat-outline-rounded',
 			size: 36,
 			height: 28,
 			marginTop: 6,
 			to: '/chat',
-			label: 'Link zum Chat'
+			label: 'Chat'
 		},
-		{ icon: 'uil:shop', size: 32.7, height: 30, to: '/shop', label: 'Link zum Shop' },
-		{ icon: 'material-symbols:account-circle-full', size: 30, height: 30, to: '/profile', label: 'Link zum Profil' },
+		{ icon: 'uil:shop', size: 32.7, height: 30, to: '/shop', label: 'Shop' },
+		{ icon: 'material-symbols:account-circle-full', size: 30, height: 30, to: '/profile', label: 'Profil' },
 		{
 			icon: 'material-symbols:add-circle-outline-rounded',
 			size: 36,
 			height: 30,
 			to: '/create',
-			label: 'Link zur Angebotserstellung'
+			label: 'Angebotserstellung'
 		}
 	];
 	$: if (!admin && links.find((link) => link.to === '/admin')) {
@@ -39,7 +39,7 @@
 			size: 34,
 			height: 34,
 			to: '/admin',
-			label: 'Link zur Admin Zentrale'
+			label: 'Admin Zentrale'
 		});
 		links = links;
 	}
@@ -85,6 +85,7 @@
 					out:scale={{ duration: 200 }}
 					href={link.to}
 					aria-label={link.label}
+					title={link.label}
 					style:height="{link.height}px"
 					style:margin-top="{link.marginTop}px"
 					class="flex w-8 items-center justify-center"

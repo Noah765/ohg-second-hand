@@ -49,7 +49,9 @@ export async function load({ parent, url }) {
 }
 
 const fields = ['created_at', 'price', 'title'];
-function getOrderBy(order: string | null): ['created_at' | 'price' | 'title', { ascending: boolean }] {
+function getOrderBy(
+	order: string | null
+): ['created_at' | 'price' | 'title', { ascending: boolean; nullsFirst?: boolean }] {
 	if (!order || !order.includes('-')) return ['created_at', { ascending: false }];
 
 	const splitted = order.split('-');
@@ -58,7 +60,9 @@ function getOrderBy(order: string | null): ['created_at' | 'price' | 'title', { 
 
 	if (!fields.includes(field)) return ['created_at', { ascending: false }];
 
-	return [field as 'created_at' | 'price' | 'title', { ascending: direction === 'ASC' }];
+	if (field == 'price' && direction === 'ASC') return ['price', { ascending: true, nullsFirst: true }];
+
+	return [field as 'created_at' | 'price' | 'title', { ascending: direction === 'ASC', nullsFirst: false }];
 }
 
 function getPage(page: string | null): [number, number] | undefined {

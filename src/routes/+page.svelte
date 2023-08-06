@@ -186,7 +186,7 @@
 				{#each Array(2) as _, section}
 					{#each computeRelevantCategories(column, categoryColumns) as { id, image, icon, name }}
 						<a
-							href="/shop?category={id}"
+							href="/shop?categories={id}"
 							tabindex={section === 0 ? 0 : -1}
 							class="relative my-4 block rounded-3xl border-black shadow-4 transition-transform last:mb-0 hover:scale-[1.02] hover:bg-neutral-500 focus:scale-[1.02] focus:bg-neutral-500 active:border active:shadow-3"
 						>
@@ -203,33 +203,35 @@
 	</div>
 </section>
 
-<section>
-	<div class="w-min whitespace-nowrap">
-		<h3>Wieso aber <span class="text-green-700">Second Hand</span>?</h3>
-		<span class="line-green-800 mb-4" />
-	</div>
-	Mit Second Hand Angeboten sparst du nicht nur viel Geld, sondern tust dabei auch noch etwas gutes für die Umwelt!
-	<div class="fade-horizontal relative mt-4 h-[21vw] overflow-x-hidden">
-		<div style:--move="-{offerImagesWidth}px" class="move-horizontal flex h-full items-center">
-			{#each Array(2) as _, section}
-				{#each offerImages as { offer, image }, index}
-					<a
-						href="offers/{offer}"
-						tabindex={section === 0 ? 0 : -1}
-						class="mx-2 h-[20vw] min-w-fit transition-transform last:mr-0 hover:scale-[1.02]"
-					>
-						<img
-							bind:this={offerImagesRef[index]}
-							src={formatImage(image, 'offer_images')}
-							alt="Bild eines Angebots {index + 1}"
-							class="h-full rounded-3xl"
-						/>
-					</a>
-				{/each}
-			{/each}
+{#if offerImages.length >= 5}
+	<section>
+		<div class="w-min whitespace-nowrap">
+			<h3>Wieso aber <span class="text-green-700">Second Hand</span>?</h3>
+			<span class="line-green-800 mb-4" />
 		</div>
-	</div>
-</section>
+		Mit Second Hand Angeboten sparst du nicht nur viel Geld, sondern tust dabei auch noch etwas Gutes für die Umwelt!
+		<div class="fade-horizontal relative mt-4 h-[21vw] overflow-x-hidden">
+			<div style:--move="-{offerImagesWidth}px" class="move-horizontal flex h-full items-center">
+				{#each Array(2) as _, section}
+					{#each offerImages as { offer, image }, index}
+						<a
+							href="offers/{offer}"
+							tabindex={section === 0 ? 0 : -1}
+							class="mx-2 h-[20vw] min-w-fit transition-transform last:mr-0 hover:scale-[1.02]"
+						>
+							<img
+								bind:this={offerImagesRef[index]}
+								src={formatImage(image, 'offer_images')}
+								alt="Bild eines Angebots {index + 1}"
+								class="h-full rounded-3xl"
+							/>
+						</a>
+					{/each}
+				{/each}
+			</div>
+		</div>
+	</section>
+{/if}
 
 {#if resetPasswordModal}
 	<ResetPasswordModal type={resetPasswordModal} {supabase} {email} on:close={() => (resetPasswordModal = null)} />

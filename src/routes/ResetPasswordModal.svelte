@@ -27,6 +27,18 @@
 	async function sendEmail() {
 		loading = true;
 		error = '';
+
+		const { data: emailUsed, error: checkEmailUsedError } = await supabase.rpc('is_email_used', { email });
+		if (checkEmailUsedError) {
+			error = checkEmailUsedError.message;
+			return;
+		}
+		if (!emailUsed) {
+			error = 'Es wurde kein bestehendes Profil mit dieser E-Mail-Adresse gefunden';
+			loading = false;
+			return;
+		}
+
 		time = 30;
 		timer = setInterval(() => {
 			time--;
