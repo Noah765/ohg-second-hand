@@ -79,6 +79,8 @@
 	}
 </script>
 
+<svelte:document on:click={() => (multiple || !expanded ? undefined : (expanded = false))} />
+
 <div class="relative w-full max-w-lg">
 	<input {name} {required} {value} aria-hidden="true" class="pointer-events-none absolute opacity-0" />
 	<button
@@ -86,8 +88,7 @@
 		type="button"
 		aria-expanded={expanded}
 		aria-controls="options"
-		on:click={() => (expanded = !expanded)}
-		on:blur={() => (multiple ? undefined : setTimeout(() => (expanded = false), 100))}
+		on:click={() => (!expanded || multiple ? setTimeout(() => (expanded = !expanded)) : undefined)}
 		class:!rounded-b-none={expanded}
 		class:transition-[border-radius]={!expanded}
 		class:duration-150={!expanded}

@@ -292,12 +292,16 @@
 	}
 
 	@keyframes move {
-		to {
+		0% {
+			transform: none;
+		}
+		100% {
 			transform: translateY(-50%);
 		}
 	}
 	.move {
 		animation: move calc((9 / var(--columns)) * 10s) linear infinite;
+		animation-play-state: running;
 	}
 	.move:hover {
 		animation-play-state: paused;
@@ -310,6 +314,7 @@
 	}
 	.move-horizontal {
 		animation: move-horizontal 30s linear infinite;
+		animation-play-state: running;
 	}
 	.move-horizontal:hover {
 		animation-play-state: paused;

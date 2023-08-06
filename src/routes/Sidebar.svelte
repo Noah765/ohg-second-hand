@@ -8,23 +8,23 @@
 
 	let links = [
 		{ icon: 'material-symbols:home-outline-rounded', size: 41, height: 27, to: '/', label: 'Startseite' },
+		{ icon: 'uil:shop', size: 32.7, height: 36, to: '/shop', label: 'Shop' },
+		{
+			icon: 'material-symbols:add-circle-outline-rounded',
+			size: 36,
+			height: 25,
+			to: '/create',
+			label: 'Angebotserstellung'
+		},
 		{
 			icon: 'material-symbols:chat-outline-rounded',
 			size: 36,
-			height: 28,
+			height: 25,
 			marginTop: 6,
 			to: '/chat',
 			label: 'Chat'
 		},
-		{ icon: 'uil:shop', size: 32.7, height: 30, to: '/shop', label: 'Shop' },
-		{ icon: 'material-symbols:account-circle-full', size: 30, height: 30, to: '/profile', label: 'Profil' },
-		{
-			icon: 'material-symbols:add-circle-outline-rounded',
-			size: 36,
-			height: 30,
-			to: '/create',
-			label: 'Angebotserstellung'
-		}
+		{ icon: 'material-symbols:account-circle-full', size: 30, height: 30, to: '/profile', label: 'Profil' }
 	];
 	$: if (!admin && links.find((link) => link.to === '/admin')) {
 		links.splice(
@@ -37,7 +37,7 @@
 		links.push({
 			icon: 'material-symbols:tools-wrench-outline-rounded',
 			size: 34,
-			height: 34,
+			height: 30,
 			to: '/admin',
 			label: 'Admin Zentrale'
 		});
