@@ -21,14 +21,7 @@
 				color: 'red',
 				icon: 'material-symbols:error-circle-rounded-outline',
 				title: 'Fehler',
-				description: 'Das Verifizierungs-Token ist ungültig oder abgelaufen. ',
-				action: {
-					text: 'E-Mail erneut senden',
-					function: () => {
-						goto('?verification');
-						alerts.update((oldAlerts) => oldAlerts.filter((alert) => alert.id !== alertId));
-					}
-				}
+				description: 'Das Token ist ungültig oder abgelaufen.'
 			}
 		]);
 	}
@@ -62,6 +55,7 @@
 
 	onMount(() => {
 		if ($page.url.searchParams.has('login')) setTimeout(() => gotoLogin(), 400);
+		if ($page.url.searchParams.has('reset-password')) resetPasswordModal = 'password';
 
 		const { data } = supabase.auth.onAuthStateChange((event) => {
 			if (event === 'PASSWORD_RECOVERY') resetPasswordModal = 'password';
@@ -292,10 +286,7 @@
 	}
 
 	@keyframes move {
-		0% {
-			transform: none;
-		}
-		100% {
+		to {
 			transform: translateY(-50%);
 		}
 	}

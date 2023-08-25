@@ -39,13 +39,15 @@
 			return;
 		}
 
-		time = 30;
+		time = 60;
 		timer = setInterval(() => {
 			time--;
 			if (time === 0) clearInterval(timer);
 		}, 1000);
 
-		const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email);
+		const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: 'https://ohg-second-hand.vercel.app?reset-password'
+		});
 
 		loading = false;
 
@@ -57,7 +59,6 @@
 	async function setPassword() {
 		loading = true;
 		error = '';
-		time = 30;
 
 		const { error: supabaseError } = await supabase.auth.updateUser({ password });
 
@@ -74,9 +75,11 @@
 	<span class="line-green-700 mb-4" />
 	<p>
 		{#if type === 'email'}
-			Möchtest du eine E-Mail zum Zurücksetzen des Passworts senden?
-		{:else if success}
-			Eine E-Mail zum Zurücksetzen des Passworts wurde erfolgreich gesendet
+			{#if success}
+				Eine E-Mail zum Zurücksetzen des Passworts wurde erfolgreich gesendet
+			{:else}
+				Möchtest du eine E-Mail zum Zurücksetzen des Passworts senden?
+			{/if}
 		{:else}
 			Gib ein neues Passwort ein
 		{/if}
