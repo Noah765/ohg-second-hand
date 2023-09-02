@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { PUBLIC_SITE_URL } from '$env/static/public';
+	import EmailInput from '$lib/components/EmailInput.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import type { PageData } from './$types';
 	import { createEventDispatcher, onDestroy } from 'svelte';
@@ -15,7 +17,7 @@
 	let success = false;
 	let error = '';
 	let time = 0;
-	let timer: NodeJS.Timer;
+	let timer: NodeJS.Timeout;
 
 	onDestroy(() => clearInterval(timer));
 
@@ -28,7 +30,9 @@
 		loading = true;
 		error = '';
 
-		const { data: emailUsed, error: checkEmailUsedError } = await supabase.rpc('is_email_used', { email });
+		const { data: emailUsed, error: checkEmailUsedError } = await supabase.rpc('is_email_used', {
+			email: email + '@ohg-monheim.eu'
+		});
 		if (checkEmailUsedError) {
 			error = checkEmailUsedError.message;
 			return;
@@ -39,14 +43,14 @@
 			return;
 		}
 
-		time = 60;
+		time = 30;
 		timer = setInterval(() => {
 			time--;
 			if (time === 0) clearInterval(timer);
 		}, 1000);
 
-		const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: 'https://ohg-second-hand.vercel.app?reset-password'
+		const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email + '@ohg-monheim.eu', {
+			redirectTo: `${PUBLIC_SITE_URL}?reset-password`
 		});
 
 		loading = false;
@@ -87,7 +91,7 @@
 	<form method="POST" on:submit|preventDefault={submit} class="mt-auto w-full">
 		<span class="error mb-2 block">{error}</span>
 		{#if type === 'email'}
-			<input bind:value={email} type="email" required placeholder="E-Mail-Adresse" />
+			<EmailInput bind:value={email} />
 		{:else}
 			<div class="flex items-center">
 				<input

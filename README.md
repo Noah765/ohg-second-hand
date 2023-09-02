@@ -13,3 +13,6 @@
 - https://commons.wikimedia.org/wiki/File:Gesellschaftsspiele.jpg
 - https://commons.wikimedia.org/wiki/File:Bed_Room.jpg
 - https://pxhere.com/en/photo/1186579
+
+## Favicon by Freepik - Flaticon
+https://www.flaticon.com/free-icons/second-hand

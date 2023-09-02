@@ -156,8 +156,6 @@
 									if (deleteChatCooldown === cooldown) {
 										deleteChatCooldown = 0;
 
-										console.log(deleteChatCooldown);
-
 										if (cooldown === 1) {
 											const alertId = Symbol();
 											alerts.update((oldAlerts) => [
@@ -215,7 +213,7 @@
 							}
 						]);
 					});
-			} else {
+			} else if (!newSession) {
 				channel?.unsubscribe();
 			}
 		});
@@ -245,8 +243,9 @@
 		<main><slot /></main>
 
 		<footer>
-			<!-- <p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p> -->
-			FOOTER
+			<a href="/legal/terms">Allgemeine Geschäftsbedingungen</a><a href="/legal/privacy">Datenschutzerklärung</a><a
+				href="/legal/sources">Bildquellen</a
+			>
 		</footer>
 	</div>
 </div>

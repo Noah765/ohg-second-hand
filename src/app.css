@@ -24,7 +24,14 @@
 	}
 
 	aside {
-		@apply w-24 bg-neutral-50 p-4;
+		@apply w-24 bg-neutral-50 p-4 min-h-screen;
+	}
+
+	footer {
+		@apply text-white text-xl underline opacity-50 text-right mb-2 mr-2;
+	}
+	footer > a {
+		@apply mx-2;
 	}
 
 	h1 {

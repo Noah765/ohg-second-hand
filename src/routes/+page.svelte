@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import EmailInput from '$lib/components/EmailInput.svelte';
 	import { formatImage } from '$lib/format';
 	import type { WritableAlerts } from './Alerts.svelte';
 	import ResetPasswordModal from './ResetPasswordModal.svelte';
@@ -40,7 +41,7 @@
 
 	let pageWidth: number;
 
-	let categoryColumns = 0;
+	let categoryColumns = 3;
 
 	$: if (pageWidth > 1000) categoryColumns = 3;
 	else if (pageWidth > 700) categoryColumns = 2;
@@ -100,7 +101,7 @@
 		loginError = '';
 
 		const { data: userBlocked, error: checkUserBlockedError } = (await supabase.rpc('get_user_blocked', {
-			email,
+			email: email + '@ohg-monheim.eu',
 			password
 		})) as PostgrestSingleResponse<{ username: string; until: number; description: string }>;
 
@@ -125,7 +126,7 @@
 
 		localStorage.removeItem('block');
 
-		const { error } = await supabase.auth.signInWithPassword({ email, password });
+		const { error } = await supabase.auth.signInWithPassword({ email: email + '@ohg-monheim.eu', password });
 
 		loginLoading = false;
 		if (error) loginError = error.message;
@@ -228,15 +229,23 @@
 {/if}
 
 {#if resetPasswordModal}
-	<ResetPasswordModal type={resetPasswordModal} {supabase} {email} on:close={() => (resetPasswordModal = null)} />
+	<ResetPasswordModal
+		type={resetPasswordModal}
+		{supabase}
+		{email}
+		on:close={() => {
+			resetPasswordModal = null;
+			goto('/');
+		}}
+	/>
 {/if}
 
 {#if !user}
 	<section>
 		<h2>Willkommen zurück!</h2>
 		<form method="POST" on:submit|preventDefault={login} class="mt-6 grid gap-3">
-			<input bind:value={email} type="email" required placeholder="E-Mail-Adresse" />
-			<div class="flex items-center">
+			<EmailInput bind:value={email} />
+			<div class="mb-3 flex items-center">
 				<input
 					on:input={(e) => (password = e.currentTarget.value)}
 					type={passwordVisible ? 'text' : 'password'}
@@ -258,7 +267,25 @@
 					/>
 				</button>
 			</div>
-			<p class="error -mb-2">{loginError}</p>
+			<label class="group flex max-w-lg cursor-pointer">
+				<input
+					type="checkbox"
+					required
+					class="peer mr-4 h-9 w-9 rounded-lg border-black shadow-3 group-hover:bg-neutral-100 group-active:mr-[15.2px] group-active:border group-active:shadow-2"
+				/>
+				<iconify-icon
+					icon="material-symbols:check-small-rounded"
+					class="absolute text-4xl text-transparent transition-colors peer-checked:text-black"
+				/>
+				<span class="text-sm">
+					Ich akzeptiere die <a href="/legal/terms" class="underline">Allgemeinen Geschäftsbedingungen</a> und habe die
+					<a href="/legal/privacy" class="underline">Datenschutzerklärung</a>
+					zur Kenntnis genommen
+				</span>
+			</label>
+			{#if loginError}
+				<p class="error -mb-2">{loginError}</p>
+			{/if}
 			<button aria-busy={loginLoading} disabled={loginLoading}>
 				Anmelden<iconify-icon icon="material-symbols:arrow-forward-rounded" />
 			</button>

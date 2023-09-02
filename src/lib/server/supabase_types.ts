@@ -3,7 +3,7 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json }
+  | { [key: string]: Json | undefined }
   | Json[]
 
 export interface Database {
@@ -50,6 +50,26 @@ export interface Database {
           offer?: string
           user?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookmarks_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "random_offer_images"
+            referencedColumns: ["offer"]
+          },
+          {
+            foreignKeyName: "bookmarks_user_fkey"
+            columns: ["user"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       chat_reports: {
         Row: {
@@ -76,6 +96,26 @@ export interface Database {
           reporter?: string
           type?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "chat_reports_chat_fkey"
+            columns: ["chat"]
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reports_chat_fkey"
+            columns: ["chat"]
+            referencedRelation: "my_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reports_reporter_fkey"
+            columns: ["reporter"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       chats: {
         Row: {
@@ -93,6 +133,26 @@ export interface Database {
           offer?: string
           user?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "chats_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "random_offer_images"
+            referencedColumns: ["offer"]
+          },
+          {
+            foreignKeyName: "chats_user_fkey"
+            columns: ["user"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       messages: {
         Row: {
@@ -102,6 +162,7 @@ export interface Database {
           images: string[] | null
           message: string | null
           receiver: string
+          seen: boolean
           sender: string
         }
         Insert: {
@@ -111,6 +172,7 @@ export interface Database {
           images?: string[] | null
           message?: string | null
           receiver: string
+          seen?: boolean
           sender: string
         }
         Update: {
@@ -120,8 +182,35 @@ export interface Database {
           images?: string[] | null
           message?: string | null
           receiver?: string
+          seen?: boolean
           sender?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_fkey"
+            columns: ["chat"]
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_chat_fkey"
+            columns: ["chat"]
+            referencedRelation: "my_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_fkey"
+            columns: ["receiver"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_fkey"
+            columns: ["sender"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       offer_reports: {
         Row: {
@@ -148,6 +237,26 @@ export interface Database {
           reporter?: string
           type?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "offer_reports_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_reports_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "random_offer_images"
+            referencedColumns: ["offer"]
+          },
+          {
+            foreignKeyName: "offer_reports_reporter_fkey"
+            columns: ["reporter"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       offers: {
         Row: {
@@ -189,6 +298,14 @@ export interface Database {
           title?: string
           ts?: unknown | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "offers_creator_fkey"
+            columns: ["creator"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       users: {
         Row: {
@@ -203,6 +320,14 @@ export interface Database {
           id?: string
           name?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "users_id_fkey"
+            columns: ["id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
@@ -212,12 +337,33 @@ export interface Database {
           offer: string | null
           user: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "chats_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_offer_fkey"
+            columns: ["offer"]
+            referencedRelation: "random_offer_images"
+            referencedColumns: ["offer"]
+          },
+          {
+            foreignKeyName: "chats_user_fkey"
+            columns: ["user"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       random_offer_images: {
         Row: {
           image: string | null
           offer: string | null
         }
+        Relationships: []
       }
     }
     Functions: {
@@ -278,6 +424,12 @@ export interface Database {
         }
         Returns: boolean
       }
+      update_message_seen: {
+        Args: {
+          chat: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -322,6 +474,14 @@ export interface Database {
           public?: boolean | null
           updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "buckets_owner_fkey"
+            columns: ["owner"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       migrations: {
         Row: {
@@ -342,6 +502,7 @@ export interface Database {
           id?: number
           name?: string
         }
+        Relationships: []
       }
       objects: {
         Row: {
@@ -380,6 +541,20 @@ export interface Database {
           updated_at?: string | null
           version?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objects_owner_fkey"
+            columns: ["owner"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

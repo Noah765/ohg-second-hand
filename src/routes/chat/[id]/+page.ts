@@ -1,4 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
+import type { PageLoad } from './$types';
 
 export type Message = {
 	id: number;
@@ -8,8 +9,10 @@ export type Message = {
 	images: string[] | null;
 };
 
-export async function load({ parent, params }) {
-	const { supabase, chats } = await parent();
+export const load: PageLoad = async ({ parent, params }) => {
+	const { supabase, chats, user } = await parent();
+
+	if (!user) return;
 
 	if (!chats) throw redirect(303, '/chat');
 	if (!chats.find((chat) => String(chat.id) === params.id)) throw redirect(303, `/chat/${chats[0].id}`);
@@ -24,4 +27,4 @@ export async function load({ parent, params }) {
 	if (supabaseError) throw error(500, supabaseError);
 
 	return { messages };
-}
+};

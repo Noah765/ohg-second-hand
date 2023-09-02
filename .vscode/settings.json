@@ -10,12 +10,5 @@
 	"files.associations": {
 		"*.css": "tailwindcss"
 	},
-	"svelte.enable-ts-plugin": true,
-	"[postgres]": {
-		"editor.defaultFormatter": "bradymholt.pgformatter"
-	},
-	"[sql]": {
-		"editor.defaultFormatter": "adpyke.vscode-sql-formatter"
-	},
-	"cSpell.words": ["cooldown"]
+	"svelte.enable-ts-plugin": true
 }

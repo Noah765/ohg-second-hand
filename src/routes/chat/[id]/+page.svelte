@@ -7,17 +7,12 @@
 	import type { WritableAlerts } from '../../Alerts.svelte';
 	import type { PageData } from './$types';
 	import type { Message } from './+page';
-	import { getContext, onDestroy } from 'svelte';
+	import { getContext, onDestroy, onMount } from 'svelte';
 
 	enum MessageStatus {
 		pending,
 		error
 	}
-
-	onDestroy(() => {
-		unsubscribeChatMessages();
-		clearInterval(sendMessageCooldownTimer);
-	});
 
 	export let data: {
 		supabase: PageData['supabase'];
@@ -27,7 +22,16 @@
 	};
 	$: ({ supabase, user, chats, messages } = data);
 
+	onDestroy(() => {
+		unsubscribeChatMessages();
+		clearInterval(sendMessageCooldownTimer);
+	});
+
+	onMount(async () => await supabase.rpc('update_message_seen', { chat: $page.params.id }));
+
 	$: currentChat = chats.find((chat) => String(chat.id) === $page.params.id)!;
+
+	let scrollingElement: HTMLDivElement;
 
 	const alerts: WritableAlerts = getContext('alerts');
 
@@ -35,7 +39,7 @@
 	let refetchChatCooldown = 0;
 
 	const chatMessages = getContext<WritableChat>('chat');
-	const unsubscribeChatMessages = chatMessages.subscribe((event) => {
+	const unsubscribeChatMessages = chatMessages.subscribe(async (event) => {
 		if (event === null) return;
 
 		if (event.eventType === 'INSERT' && currentChat && event.new.chat === currentChat.id) {
@@ -47,6 +51,8 @@
 				images: event.new.images
 			});
 			messages = messages;
+			scrollingElement.scrollTo(0, 0);
+			await supabase.rpc('update_message_seen', { chat: currentChat.id.toString() });
 		} else if (event.eventType === 'UPDATE' && event.new.chat === currentChat.id) {
 			const message = messages.find((message) => message.id === event.new.id);
 			if (message) {
@@ -96,12 +102,13 @@
 		loadingMore = true;
 		section++;
 
+		const sectionOffset = messages.length - section * 10;
 		const { data, error } = await supabase
 			.from('messages')
 			.select('id, receiver, created_at, message, images')
 			.eq('chat', currentChat.id)
 			.order('created_at', { ascending: false })
-			.range(section * 10, section * 10 + 9)
+			.range(section * 10 + sectionOffset, section * 10 + 9 + sectionOffset)
 			.returns<Message[]>();
 
 		loadingMore = false;
@@ -125,7 +132,7 @@
 	let message: string;
 	let sendMessageLoading = false;
 	let sendMessageCooldown = 0;
-	let sendMessageCooldownTimer: NodeJS.Timer;
+	let sendMessageCooldownTimer: NodeJS.Timeout;
 	let sendMessageError = '';
 	async function sendMessage() {
 		if (!message && images.length === 0) return;
@@ -188,6 +195,7 @@
 			images: imageUrls.length === 0 ? null : imageUrls
 		});
 		messages = messages;
+		scrollingElement.scrollTo(0, 0);
 		message = '';
 		images = [];
 	}
@@ -265,7 +273,7 @@
 </script>
 
 <div class="fade relative my-2 h-full overflow-hidden">
-	<div on:scroll={onScroll} class="flex h-full flex-col-reverse overflow-y-auto">
+	<div bind:this={scrollingElement} on:scroll={onScroll} class="flex h-full flex-col-reverse overflow-y-auto">
 		{#each messages as { id, receiver, created_at, message, images, status } (id)}
 			<div class:ml-auto={receiver !== user.id} class="flex w-[30vw] flex-col">
 				{#if status === MessageStatus.pending}
@@ -396,7 +404,7 @@
 	</button>
 </form>
 
-<style scoped>
+<style>
 	.fade:before {
 		content: '';
 		width: 100%;
