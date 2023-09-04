@@ -19,7 +19,7 @@ type Body = {
 const transporter = createTransport({
 	host: 'ohg-monheim.eu',
 	port: 587,
-	auth: { user: 'noah.landgraf', pass: EMAIL_PASSWORD }
+	auth: { user: 'secondhand.ag', pass: EMAIL_PASSWORD }
 });
 
 export async function POST({ request }) {
