@@ -28,11 +28,12 @@
 		<span class="h-48 min-w-[16rem]" />
 		<span class="mx-6 h-44 min-w-[0.2rem] rounded-full bg-black" />
 		<div class="flex h-48 w-full flex-col overflow-hidden">
-			<div class="flex items-end whitespace-nowrap">
+			<div class="grid grid-cols-[auto,1fr] items-end gap-2 whitespace-nowrap">
 				<span class="overflow-hidden overflow-ellipsis text-4xl">{offer.title}</span>
 				{#if offer.creator}
-					<span class="text-lg">&nbsp;von&nbsp;</span>
-					<a href="/profile/{offer.creator.id}" class="text-lg underline">{offer.creator.name}</a>
+					<span class="text-lg">
+						von <a href="/profile/{offer.creator.id}" class="underline">{offer.creator.name}</a>
+					</span>
 				{/if}
 			</div>
 			<span class="mb-auto overflow-hidden text-xl">{offer.description ?? ''}</span>

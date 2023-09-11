@@ -88,7 +88,7 @@
 			<div class="flex items-end">
 				<span class="text-6xl">{offer.title}</span>
 				<span>&nbsp;von&nbsp;</span>
-				<a href="/profile/{offer.creator.id}" class="underline">{offer.creator.name}</a>
+				<a href="/profile/{offer.creator.id}" class="whitespace-nowrap underline">{offer.creator.name}</a>
 				{#if offer.creator.blocked}<span class="text-red-700">&nbsp;(blockiert)</span>{/if}
 			</div>
 			<span class="mt-1 flex h-1 rounded-full bg-green-800" />
@@ -118,17 +118,17 @@
 			</div>
 		</div>
 		<div class="my-4 flex justify-center">
-			<span class="h-1 w-[calc(100%-4rem)] rounded-full bg-green-800" />
+			<span class="h-1 w-full rounded-full bg-green-800" />
 		</div>
-		<div class="mx-10 flex justify-between">
+		<div class="flex justify-between">
 			<div class="flex items-center">
 				<iconify-icon icon={formatCategory(offer.category).icon} />
 				<span>&nbsp;({formatCategory(offer.category).name})</span>
 			</div>
 			<span class="text-3xl">{formatPrice(offer.price)} ({formatPriceFixed(offer.price_fixed)})</span>
 		</div>
-		<div class="mb-10 mt-4 flex justify-center">
-			<span class="h-1 w-[calc(100%-4rem)] rounded-full bg-green-800" />
+		<div class="mb-12 mt-4 flex justify-center">
+			<span class="h-1 w-full rounded-full bg-green-800" />
 		</div>
 		{#if user?.id === offer.creator.id}
 			{#if offer.chat_id}
@@ -165,7 +165,7 @@
 					{/if}
 				</div>
 			{/if}
-			<button on:click={bookmark} aria-busy={bookmarkLoading} disabled={bookmarkLoading} class="my-4">
+			<button on:click={bookmark} aria-busy={bookmarkLoading} disabled={bookmarkLoading} class="mt-4">
 				{offer.bookmark ? 'Gemerkt' : 'Merken'}
 				<iconify-icon icon={offer.bookmark ? 'ph:heart-fill' : 'ph:heart'} class:text-green-800={offer.bookmark} />
 			</button>
@@ -189,7 +189,7 @@
 				<a href="/?login" class="button">Anmelden<iconify-icon icon="material-symbols:arrow-forward-rounded" /></a>
 			</div>
 		{/if}
-		<span class="line-green-800 mb-4 mt-8 max-w-[40rem]" />
+		<span class="line-green-800 mb-4 mt-12 max-w-[40rem]" />
 		<a href="/shop" class="button">Zurück zum Shop<iconify-icon icon="material-symbols:arrow-back-rounded" /></a>
 	</section>
 {:else}
