@@ -172,9 +172,9 @@
 			<p class="error">{bookmarkError}</p>
 			{#if !user.admin}
 				{#if offer.report}
-					<a href="/profile?offer-reports" class="button">Meldung ansehen</a>
+					<a href="/profile?offer-reports" class="button mt-4">Meldung ansehen</a>
 				{:else}
-					<button on:click={() => (reportModal = true)}>
+					<button on:click={() => (reportModal = true)} class="mt-4">
 						Melden<iconify-icon icon="material-symbols:flag-outline-rounded" />
 					</button>
 				{/if}
