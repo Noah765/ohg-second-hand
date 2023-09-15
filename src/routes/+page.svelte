@@ -52,7 +52,7 @@
 	}
 
 	let offerImagesRef: HTMLImageElement[] = [];
-	let offerImagesWidth = 0;
+	let offerImagesWidth = 2400;
 
 	onMount(() => {
 		if ($page.url.searchParams.has('login')) setTimeout(() => gotoLogin(), 400);
@@ -317,6 +317,11 @@
 			transform: translateY(-50%);
 		}
 	}
+	@-webkit-keyframes move {
+		to {
+			transform: translateY(-50%);
+		}
+	}
 	.move {
 		animation: move calc((9 / var(--columns)) * 10s) linear infinite;
 		animation-play-state: running;
@@ -326,6 +331,11 @@
 	}
 
 	@keyframes move-horizontal {
+		to {
+			transform: translateX(var(--move));
+		}
+	}
+	@-webkit-keyframes move-horizontal {
 		to {
 			transform: translateX(var(--move));
 		}
