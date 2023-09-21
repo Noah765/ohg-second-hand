@@ -16,6 +16,8 @@
 	let loading = false;
 	let error = '';
 	async function register() {
+		email = email.toLowerCase();
+
 		loading = true;
 		error = '';
 
