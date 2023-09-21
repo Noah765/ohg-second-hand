@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page as pageStore } from '$app/stores';
 	import OfferListItem from '$lib/components/OfferListItem.svelte';
 	import Option from '$lib/components/Option.svelte';
@@ -16,9 +17,9 @@
 	$: pageCount = Math.ceil(data.count / 10);
 
 	function getPageUrl(page: number) {
-		const url = new URL(location.href);
-		url.searchParams.set('page', String(page));
-		return url.href;
+		const newUrl = new URL(browser ? location.href : url.href);
+		newUrl.searchParams.set('page', String(page));
+		return newUrl.href;
 	}
 </script>
 

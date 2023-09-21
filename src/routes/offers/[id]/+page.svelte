@@ -112,7 +112,10 @@
 			<span class="mx-6 h-64 w-1 rounded-full bg-black" />
 			<div class="flex h-72 w-full flex-col">
 				<span class="text-base">{formatTime(offer.created_at)}</span>
-				<span class:opacity-50={!offer.description} class="overflow-y-auto overflow-x-hidden overflow-ellipsis">
+				<span
+					class:opacity-50={!offer.description}
+					class="overflow-y-auto overflow-x-hidden overflow-ellipsis whitespace-pre-line"
+				>
 					{offer.description ?? 'Keine Beschreibung vorhanden'}
 				</span>
 			</div>
