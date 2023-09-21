@@ -16,9 +16,9 @@
 	$: pageCount = Math.ceil(data.count / 10);
 
 	function getPageUrl(page: number) {
-		const urlCopy = new URL(url.href);
-		urlCopy.searchParams.set('page', String(page));
-		return urlCopy.href;
+		const url = new URL(location.href);
+		url.searchParams.set('page', String(page));
+		return url.href;
 	}
 </script>
 
