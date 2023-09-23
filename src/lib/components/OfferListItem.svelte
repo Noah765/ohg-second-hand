@@ -36,7 +36,7 @@
 					</span>
 				{/if}
 			</div>
-			<span class="mb-auto overflow-hidden text-xl">{offer.description ?? ''}</span>
+			<span class="mb-auto overflow-hidden whitespace-pre-line text-xl">{offer.description ?? ''}</span>
 			<span class="text-sm">{formatTime(offer.created_at)}</span>
 			{formatPrice(offer.price)} ({formatPriceFixed(offer.price_fixed)})
 		</div>

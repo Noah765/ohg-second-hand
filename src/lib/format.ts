@@ -15,7 +15,9 @@ export function formatCategory(inp: number) {
 export function formatPrice(inp: number | null) {
 	if (!inp) return '00,00 €';
 
-	return `${(inp / 100).toString().replace('.', ',')} €`;
+	const euros = Math.floor(inp / 100);
+	const cents = inp - euros * 100;
+	return `${euros},${cents.toString().padEnd(2, '0')} €`;
 }
 
 export function formatPriceFixed(inp: boolean | null) {
